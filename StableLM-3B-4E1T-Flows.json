@@ -163,16 +163,6 @@
         "wires": []
     },
     {
-        "id": "31bed00a3d885134",
-        "type": "comment",
-        "z": "706bdd3f3f20c07c",
-        "name": "cwd = server installation folder",
-        "info": "",
-        "x": 450,
-        "y": 380,
-        "wires": []
-    },
-    {
         "id": "eb17f37faae8700d",
         "type": "change",
         "z": "706bdd3f3f20c07c",
@@ -382,16 +372,6 @@
         "statusType": "auto",
         "x": 360,
         "y": 840,
-        "wires": []
-    },
-    {
-        "id": "ea3545c4d8f444c0",
-        "type": "comment",
-        "z": "706bdd3f3f20c07c",
-        "name": "cwd = server installation folder",
-        "info": "",
-        "x": 450,
-        "y": 640,
         "wires": []
     },
     {
@@ -617,9 +597,9 @@
         "id": "bf75b21f290f381f",
         "type": "comment",
         "z": "706bdd3f3f20c07c",
-        "name": "cwd = server installation folder",
+        "name": "cwd = UserDir",
         "info": "",
-        "x": 450,
+        "x": 510,
         "y": 120,
         "wires": []
     },
@@ -799,6 +779,26 @@
         "statusType": "auto",
         "x": 490,
         "y": 60,
+        "wires": []
+    },
+    {
+        "id": "90f8865feb58948a",
+        "type": "comment",
+        "z": "706bdd3f3f20c07c",
+        "name": "cwd = UserDir",
+        "info": "",
+        "x": 510,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "687e12bfcb8df501",
+        "type": "comment",
+        "z": "706bdd3f3f20c07c",
+        "name": "cwd = UserDir",
+        "info": "",
+        "x": 510,
+        "y": 640,
         "wires": []
     }
 ]
