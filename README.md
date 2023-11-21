@@ -43,7 +43,7 @@ git https://github.com/rozek/llama.cpp
 cd llama.cpp
 ```
 
-Then continue as desribed in the [LLaMA.cpp docs](https://github.com/rozek/llama.cpp#build)
+Then continue as described in the [LLaMA.cpp docs](https://github.com/rozek/llama.cpp#build)
 
 Afterwards, rename 
 
