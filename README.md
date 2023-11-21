@@ -63,9 +63,68 @@ Now import the desired nodes and flows - if you want them all, just import file 
 
 If you are new to Node-RED, [just follow the instructions from their docs](https://nodered.org/docs/user-guide/editor/workspace/import-export).
 
-## Usage ##
+## Function Node Usage ##
 
-t.b.w
+All function nodes expect their parameters as properties of the msg object. The prompt itself (or the input text to tokenize or calculate embeddings from) is expected in `msg.payload` and will later be replaced by the function result.
+
+All properties (except prompt or input text) are optional. If given, they should be strings (even if they contain numbers), this makes it simpler to extract them from an HTTP request.
+
+### Text Completion Node ###
+
+Text completion supports the following properties:
+
+* `payload` - this is the actual prompt 
+* `seed` - seed value for the internal pseudo random number generator (integer, default: -1, use random seed for <= 0)
+* `threads` - number of threads to use during computation (integer ≧ 1, default: 4)
+* `context` - size of the prompt context (0...4096, default: 512)
+* `keep` - number of tokens to keep from the initial prompt (integer ≧ -1, default: 0, -1 = all)
+* `predict` - number of tokens to predict (integer ≧ -1, default: 128, -1 = infinity)
+* `topk` - top-k sampling limit (integer ≧ 1, default: 40)
+* `topp` - top-p sampling limit (0.0...1.0, default: 0.9)
+* `temperature` - temperature (0.0...2.0, default: 0.8)
+* `batches` - batch size for prompt processing (integer ≧ 1, default: 8)
+
+### Tokenization Node ###
+
+Tokenization supports the following properties:
+
+* `payload` - this is the actual input text 
+* `threads` - number of threads to use during computation (integer ≧ 1, default: 4)
+* `context` - size of the prompt context (0...4096, default: 512)
+
+### Embeddings Node ###
+
+Embeddings calculation supports the following properties:
+
+* `payload` - this is the actual input text  
+* `seed` - seed value for the internal pseudo random number generator (integer, default: -1, use random seed for <= 0)
+* `threads` - number of threads to use during computation (integer ≧ 1, default: 4)
+* `context` - size of the prompt context (0...4096, default: 512)
+
+## HTTP Endpoint Usage ##
+
+Besides the sole function nodes for
+
+* [text completion](https://raw.githubusercontent.com/rozek/node-red-flow-stablelm-3b-4e1t/master/StableLM-3B-4E1T-Completion-Function.json),
+* [tokenization](https://raw.githubusercontent.com/rozek/node-red-flow-stablelm-3b-4e1t/master/StableLM-3B-4E1T-Tokenization-Function.json) and
+* [embeddings calculation](https://raw.githubusercontent.com/rozek/node-red-flow-stablelm-3b-4e1t/master/StableLM-3B-4E1T-Embeddings-Function.json)
+
+this repository also contains example flows which answer incoming HTTP requests. The prompt itself and any desired parameters have to be passed as query parameters, the result of the called function will then be returned in the body of the HTTP response.
+
+For inferencing, the following parameters are supported (most of them will be copied into a `msg` property of the same name):
+
+* `prompt` - will be copied into `msg.payload`
+* `seed` - will be copied into `msg.seed`
+* `threads` - will be copied into `msg.threads`
+* `context` - will be copied into `msg.context`
+* `keep` - will be copied into `msg.keep`
+* `predict` - will be copied into `msg.predict`
+* `topk` - will be copied into `msg.topk`
+* `topp` - will be copied into `msg.topp`
+* `temperature` - will be copied into `msg.temperature`
+* `batches` - will be copied into `msg.batches`
+
+Tokenization and embeddings calculation endpoints support a subset of these parameters - as required by their respective function nodes.
 
 ## Examples ##
 
