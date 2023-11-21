@@ -63,6 +63,12 @@ Now import the desired nodes and flows - if you want them all, just import file 
 
 If you are new to Node-RED, [just follow the instructions from their docs](https://nodered.org/docs/user-guide/editor/workspace/import-export).
 
+## Configuration ##
+
+By default, all StableLM-3B-4E1T function nodes expect their executables (and the model itself) in the folder `$HOME/.node-red` (where `$HOME` is the user's home directory)
+
+If you prefer to store everything in a different folder, simply edit the "configure Settings" node from [StableLM-3B-4E1T-Flows.json](https://raw.githubusercontent.com/rozek/node-red-flow-stablelm-3b-4e1t/master/StableLM-3B-4E1T-Flows.json) and set `globals.UserDir` to the fully qualified path of the directory you chose.
+
 ## Function Node Usage ##
 
 All function nodes expect their parameters as properties of the msg object. The prompt itself (or the input text to tokenize or calculate embeddings from) is expected in `msg.payload` and will later be replaced by the function result.
