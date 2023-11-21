@@ -61,6 +61,33 @@ If not already done, download the [8-bit quantization of the StableLM-3B-4E1T mo
 
 Now import the desired nodes and flows - if you want them all, just import file [StableLM-3B-4E1T-Flows.json](https://raw.githubusercontent.com/rozek/node-red-flow-stablelm-3b-4e1t/master/StableLM-3B-4E1T-Flows.json).
 
+If you are new to Node-RED, [just follow the instructions from their docs](https://nodered.org/docs/user-guide/editor/workspace/import-export).
+
+## Usage ##
+
+t.b.w
+
+## Examples ##
+
+If you have [cURL](https://curl.se/) installed (if not - but you want it - just [follow the instructions found in their docs](https://everything.curl.dev/get)) (and assuming that your Node-RED installation is listening at port 1880) you may use the following commands to "smoke test" the imported flows:
+
+### Text Completion ###
+
+```
+curl "http://127.0.0.1:1880/stablelm?prompt=who%20was%20Joseph%20Weizenbaum%3F"
+```
+
+### Tokenization ###
+
+```
+curl "http://127.0.0.1:1880/stablelm-tokenization?prompt=who%20was%20Joseph%20Weizenbaum%3F"
+```
+
+### Embeddings Calculation ###
+
+```
+curl "http://127.0.0.1:1880/stablelm-embeddings?prompt=who%20was%20Joseph%20Weizenbaum%3F"
+```
 
 ## License ##
 
