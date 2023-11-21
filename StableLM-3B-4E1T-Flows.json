@@ -6,7 +6,7 @@
         "name": "StableLM-3B-4E1T Tokenization",
         "info": "",
         "x": 150,
-        "y": 380,
+        "y": 360,
         "wires": []
     },
     {
@@ -19,7 +19,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 130,
-        "y": 440,
+        "y": 420,
         "wires": [
             [
                 "eb17f37faae8700d"
@@ -31,7 +31,7 @@
         "type": "function",
         "z": "706bdd3f3f20c07c",
         "name": "StableLM Tokenization",
-        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null,msg])\n    node.done()\n    return\n  }\n\n/**** retrieve settings or provide defaults ****/\n\n  let Threads = parseInt(msg.threads,10)\n  if (isNaN(Threads)) { Threads = 4 }\n    Threads = Math.max(1,Threads)\n    Threads = Math.min(Threads,Math.max(1,os.cpus().length))\n\n  let ContextLength = parseInt(msg.context,10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n    ContextLength = Math.max(0,Math.min(ContextLength,4096))\n\n  Prompt = Prompt.replace(/\"/g,'\\\\\"')\n\n/**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = global.get('UserDir')\n  if (UserDir == null) { UserDir = process.env.HOME + '/.node-red' }\n\n  if (! fs.statSync(UserDir).isDirectory()) {\n    const ErrorMessage = (\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n    node.error(ErrorMessage)\n    throw new Error(ErrorMessage)\n  }\n\n/**** combine all these settings into a command ****/\n\n  let Command = ( 'cd \"' + UserDir + '\" && ' +\n    './llama-tokens --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength +\n    ' --threads ' + Threads +\n    ' --prompt \"' + Prompt + '\"'\n  )\n\n/**** extract actual reponse from command output ****/\n\n  function ResponseFrom (Text) {\n    let HeaderLength = Text.indexOf('system_info')\n    Text = Text.slice(HeaderLength + 1)\n      .replace(/^[^\\n]*\\n/,'')\n\n    let TrailerIndex = Text.indexOf('\\n\\nllama_print_timings')\n    Text = Text.slice(0,TrailerIndex)\n\n    return Text\n  }\n\n/**** now tokenize the given prompt ****/\n\n  let { stdout,stderr, StatusCode,Signal } = child_process.spawnSync(\n    'bash', [], { input:Command }\n  )\n\n  const $stdout = stdout.toString().trim()\n  const $stderr = stderr.toString().trim()\n\n  switch (true) {\n    case (StatusCode == null):\n    case (StatusCode === 0):\n      msg.statusCode = ($stdout === '' ? 204 : 200)\n      msg.payload    = ResponseFrom($stdout)\n      break\n    default:\n      msg.statusCode = 500 + StatusCode\n      msg.payload    = ($stdout === '' ? '' : '>>>> stdout >>>>\\n' + $stdout + '\\n') +\n                       '>>>> stderr >>>>\\n' + $stderr +\n                       (Signal == null ? '' : '\\n' + Signal)\n      break\n  }\n\n  node.send([msg,null])\n  node.done()\n})()\n",
+        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null, msg])\n    node.done()\n    return\n  }\n\n  /**** retrieve settings or provide defaults ****/\n\n  let Threads = parseInt(msg.threads, 10)\n  if (isNaN(Threads)) { Threads = 4 }\n  Threads = Math.max(1, Threads)\n  Threads = Math.min(Threads, Math.max(1, os.cpus().length))\n\n  let ContextLength = parseInt(msg.context, 10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n  ContextLength = Math.max(0, Math.min(ContextLength, 4096))\n\n  Prompt = Prompt.replace(/\"/g, '\\\\\"')\n\n  /**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = (global.get('UserDir') || '').trim()\n  if (UserDir === '') { UserDir = process.env.HOME + '/.node-red' }\n\n  if (!fs.statSync(UserDir, { throwIfNoEntry: false })?.isDirectory()) {\n    throw new Error(\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n  }\n\n  /**** combine all these settings into a command ****/\n\n  let Command = ('cd \"' + UserDir + '\" && ' +\n    './llama-tokens --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength +\n    ' --threads ' + Threads +\n    ' --prompt \"' + Prompt + '\"'\n  )\n\n  /**** extract actual reponse from command output ****/\n\n  function ResponseFrom(Text) {\n    let HeaderLength = Text.indexOf('system_info')\n    Text = Text.slice(HeaderLength + 1)\n      .replace(/^[^\\n]*\\n/, '')\n\n    let TrailerIndex = Text.indexOf('\\n\\nllama_print_timings')\n    Text = Text.slice(0, TrailerIndex)\n\n    return Text\n  }\n\n  /**** now tokenize the given prompt ****/\n\n  let { stdout, stderr, StatusCode, Signal } = child_process.spawnSync(\n    'bash', [], { input: Command }\n  )\n\n  const $stdout = stdout.toString().trim()\n  const $stderr = stderr.toString().trim()\n\n  switch (true) {\n    case (StatusCode == null):\n    case (StatusCode === 0):\n      msg.statusCode = ($stdout === '' ? 204 : 200)\n      msg.payload = ResponseFrom($stdout)\n      break\n    default:\n      msg.statusCode = 500 + StatusCode\n      msg.payload = ($stdout === '' ? '' : '>>>> stdout >>>>\\n' + $stdout + '\\n') +\n        '>>>> stderr >>>>\\n' + $stderr +\n        (Signal == null ? '' : '\\n' + Signal)\n      break\n  }\n\n  node.send([msg, null])\n  node.done()\n})()\n",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
@@ -49,10 +49,14 @@
             {
                 "var": "fs",
                 "module": "fs"
+            },
+            {
+                "var": "process",
+                "module": "process"
             }
         ],
         "x": 320,
-        "y": 500,
+        "y": 480,
         "wires": [
             [
                 "f82c27b884788eaf",
@@ -68,7 +72,7 @@
         "type": "debug",
         "z": "706bdd3f3f20c07c",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -77,7 +81,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 160,
-        "y": 560,
+        "y": 540,
         "wires": []
     },
     {
@@ -88,7 +92,7 @@
         "statusCode": "",
         "headers": {},
         "x": 530,
-        "y": 440,
+        "y": 420,
         "wires": []
     },
     {
@@ -111,7 +115,7 @@
         "to": "",
         "reg": false,
         "x": 530,
-        "y": 540,
+        "y": 520,
         "wires": [
             [
                 "af159836912ee028"
@@ -138,7 +142,7 @@
         "to": "",
         "reg": false,
         "x": 530,
-        "y": 500,
+        "y": 480,
         "wires": [
             [
                 "af159836912ee028"
@@ -150,7 +154,7 @@
         "type": "debug",
         "z": "706bdd3f3f20c07c",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -159,7 +163,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 360,
-        "y": 580,
+        "y": 560,
         "wires": []
     },
     {
@@ -203,7 +207,7 @@
         "to": "",
         "reg": false,
         "x": 130,
-        "y": 500,
+        "y": 480,
         "wires": [
             [
                 "3cb84a34cc7a9757",
@@ -218,7 +222,7 @@
         "name": "StableLM-3B-4E1T Embeddings",
         "info": "",
         "x": 150,
-        "y": 640,
+        "y": 620,
         "wires": []
     },
     {
@@ -231,7 +235,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 140,
-        "y": 700,
+        "y": 680,
         "wires": [
             [
                 "a64ddff7702c3a1d"
@@ -243,7 +247,7 @@
         "type": "function",
         "z": "706bdd3f3f20c07c",
         "name": "StableLM Embeddings",
-        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null, msg])\n    node.done()\n    return\n  }\n\n  /**** retrieve settings or provide defaults ****/\n\n  let Seed = parseInt(msg.seed, 10)\n  if (isNaN(Seed)) { Seed = -1 }\n\n  let Threads = parseInt(msg.threads, 10)\n  if (isNaN(Threads)) { Threads = 4 }\n  Threads = Math.max(1, Threads)\n  Threads = Math.min(Threads, Math.max(1, os.cpus().length))\n\n  let ContextLength = parseInt(msg.context, 10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n  ContextLength = Math.max(0, Math.min(ContextLength, 2048))\n\n  Prompt = Prompt.replace(/\"/g, '\\\\\"')\n\n  /**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = global.get('UserDir')\n  if (UserDir == null) { UserDir = process.env.HOME + '/.node-red' }\n\n  if (!fs.statSync(UserDir).isDirectory()) {\n    const ErrorMessage = (\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n    node.error(ErrorMessage)\n    throw new Error(ErrorMessage)\n  }\n\n  /**** combine all these settings into a command ****/\n\n  let Command = ('cd \"' + UserDir + '\" && ' +\n    './llama-embeddings --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength +\n    ' --threads ' + Threads +\n    ' --seed ' + Seed +\n    ' --prompt \"' + Prompt + '\"'\n  )\n\n  /**** extract actual reponse from command output ****/\n\n  function ResponseFrom(Text) {\n    let HeaderLength = Text.indexOf('system_info')\n    Text = Text.slice(HeaderLength + 1)\n      .replace(/^[^\\n]*\\n/, '')\n\n    let TrailerIndex = Text.indexOf('\\n\\nllama_print_timings')\n    Text = Text.slice(0, TrailerIndex)\n\n    return Text\n  }\n\n  /**** now calculate embeddings for the given prompt ****/\n\n  let { stdout, stderr, StatusCode, Signal } = child_process.spawnSync(\n    'bash', [], { input: Command }\n  )\n\n  const $stdout = stdout.toString().trim()\n  const $stderr = stderr.toString().trim()\n\n  switch (true) {\n    case (StatusCode == null):\n    case (StatusCode === 0):\n      msg.statusCode = ($stdout === '' ? 204 : 200)\n      msg.payload = ResponseFrom($stdout)\n      break\n    default:\n      msg.statusCode = 500 + StatusCode\n      msg.payload = ($stdout === '' ? '' : '>>>> stdout >>>>\\n' + $stdout + '\\n') +\n        '>>>> stderr >>>>\\n' + $stderr +\n        (Signal == null ? '' : '\\n' + Signal)\n      break\n  }\n\n  node.send([msg, null])\n  node.done()\n})()\n",
+        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null, msg])\n    node.done()\n    return\n  }\n\n  /**** retrieve settings or provide defaults ****/\n\n  let Seed = parseInt(msg.seed, 10)\n  if (isNaN(Seed)) { Seed = -1 }\n\n  let Threads = parseInt(msg.threads, 10)\n  if (isNaN(Threads)) { Threads = 4 }\n  Threads = Math.max(1, Threads)\n  Threads = Math.min(Threads, Math.max(1, os.cpus().length))\n\n  let ContextLength = parseInt(msg.context, 10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n  ContextLength = Math.max(0, Math.min(ContextLength, 2048))\n\n  Prompt = Prompt.replace(/\"/g, '\\\\\"')\n\n  /**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = (global.get('UserDir') || '').trim()\n  if (UserDir === '') { UserDir = process.env.HOME + '/.node-red' }\n\n  if (!fs.statSync(UserDir, { throwIfNoEntry: false })?.isDirectory()) {\n    throw new Error(\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n  }\n\n  /**** combine all these settings into a command ****/\n\n  let Command = ('cd \"' + UserDir + '\" && ' +\n    './llama-embeddings --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength +\n    ' --threads ' + Threads +\n    ' --seed ' + Seed +\n    ' --prompt \"' + Prompt + '\"'\n  )\n\n  /**** extract actual reponse from command output ****/\n\n  function ResponseFrom(Text) {\n    let HeaderLength = Text.indexOf('system_info')\n    Text = Text.slice(HeaderLength + 1)\n      .replace(/^[^\\n]*\\n/, '')\n\n    let TrailerIndex = Text.indexOf('\\n\\nllama_print_timings')\n    Text = Text.slice(0, TrailerIndex)\n\n    return Text\n  }\n\n  /**** now calculate embeddings for the given prompt ****/\n\n  let { stdout, stderr, StatusCode, Signal } = child_process.spawnSync(\n    'bash', [], { input: Command }\n  )\n\n  const $stdout = stdout.toString().trim()\n  const $stderr = stderr.toString().trim()\n\n  switch (true) {\n    case (StatusCode == null):\n    case (StatusCode === 0):\n      msg.statusCode = ($stdout === '' ? 204 : 200)\n      msg.payload = ResponseFrom($stdout)\n      break\n    default:\n      msg.statusCode = 500 + StatusCode\n      msg.payload = ($stdout === '' ? '' : '>>>> stdout >>>>\\n' + $stdout + '\\n') +\n        '>>>> stderr >>>>\\n' + $stderr +\n        (Signal == null ? '' : '\\n' + Signal)\n      break\n  }\n\n  node.send([msg, null])\n  node.done()\n})()\n",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
@@ -261,10 +265,14 @@
             {
                 "var": "fs",
                 "module": "fs"
+            },
+            {
+                "var": "process",
+                "module": "process"
             }
         ],
         "x": 320,
-        "y": 760,
+        "y": 740,
         "wires": [
             [
                 "7fcd33232b3a8ec4",
@@ -280,7 +288,7 @@
         "type": "debug",
         "z": "706bdd3f3f20c07c",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -289,7 +297,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 160,
-        "y": 820,
+        "y": 800,
         "wires": []
     },
     {
@@ -300,7 +308,7 @@
         "statusCode": "",
         "headers": {},
         "x": 530,
-        "y": 700,
+        "y": 680,
         "wires": []
     },
     {
@@ -323,7 +331,7 @@
         "to": "",
         "reg": false,
         "x": 530,
-        "y": 800,
+        "y": 780,
         "wires": [
             [
                 "609e6ffca5d92f41"
@@ -350,7 +358,7 @@
         "to": "",
         "reg": false,
         "x": 530,
-        "y": 760,
+        "y": 740,
         "wires": [
             [
                 "609e6ffca5d92f41"
@@ -362,7 +370,7 @@
         "type": "debug",
         "z": "706bdd3f3f20c07c",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -371,7 +379,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 360,
-        "y": 840,
+        "y": 820,
         "wires": []
     },
     {
@@ -422,7 +430,7 @@
         "to": "",
         "reg": false,
         "x": 130,
-        "y": 760,
+        "y": 740,
         "wires": [
             [
                 "d536cdbe5c96efac",
@@ -437,7 +445,7 @@
         "name": "StableLM-3B-4E1T",
         "info": "",
         "x": 110,
-        "y": 120,
+        "y": 100,
         "wires": []
     },
     {
@@ -450,7 +458,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 90,
-        "y": 180,
+        "y": 160,
         "wires": [
             [
                 "080489d9af9281f0"
@@ -462,7 +470,7 @@
         "type": "function",
         "z": "706bdd3f3f20c07c",
         "name": "StableLM",
-        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null, msg])\n    return\n  }\n\n  /**** retrieve settings or provide defaults ****/\n\n  let Seed = parseInt(msg.seed, 10)\n  if (isNaN(Seed)) { Seed = -1 }\n\n  let Threads = parseInt(msg.threads, 10)\n  if (isNaN(Threads)) { Threads = 4 }\n  Threads = Math.max(1, Threads)\n  Threads = Math.min(Threads, Math.max(1, os.cpus().length))\n\n  let ContextLength = parseInt(msg.context, 10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n  ContextLength = Math.max(0, Math.min(ContextLength, 4096))\n\n  let keep = parseInt(msg.keep, 10)\n  if (isNaN(keep)) { keep = 0 }\n  keep = Math.max(-1, Math.min(keep, ContextLength))\n\n  let PredictionLength = parseInt(msg.predict, 10)\n  if (isNaN(PredictionLength)) { PredictionLength = 128 }\n  PredictionLength = Math.max(1, Math.min(PredictionLength, ContextLength)) // no -1!\n\n  let topK = parseInt(msg.topk, 10)\n  if (isNaN(topK)) { topK = 40 }\n  topK = Math.max(1, Math.min(topK, 100))\n\n  let topP = parseFloat(msg.topp)\n  if (isNaN(topP)) { topP = 0.9 }\n  topP = Math.max(0.1, Math.min(topP, 1.0))\n\n  let Temperature = parseFloat(msg.temperature)\n  if (isNaN(Temperature)) { Temperature = 0.8 }\n  Temperature = Math.max(0.0, Math.min(Temperature, 1.0))\n\n  let Batches = parseInt(msg.batches, 10)\n  if (isNaN(Batches)) { Batches = 8 }\n  Batches = Math.max(1, Math.min(Batches, 100))\n\n  Prompt = Prompt.replace(/\"/g, '\\\\\"')\n\n  /**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = global.get('UserDir')\n  if (UserDir == null) { UserDir = process.env.HOME + '/.node-red' }\n\n  if (!fs.statSync(UserDir).isDirectory()) {\n    const ErrorMessage = (\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n    node.error(ErrorMessage)\n    throw new Error(ErrorMessage)\n  }\n\n  /**** combine all these settings into a command ****/\n\n  let Command = ('cd \"' + UserDir + '\" && ' +\n    './llama --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength + ' --keep ' + keep +\n    ' --n_predict ' + PredictionLength +\n    ' --threads ' + Threads + ' --batch_size ' + Batches +\n    ' --seed ' + Seed + ' --temp ' + Temperature +\n    ' --top_k ' + topK + ' --top_p ' + topP +\n    ' --reverse-prompt \"<|endoftext|>\"' +\n    ' --prompt \"' + Prompt + '\"'\n  )\n\n  /**** extract actual reponse from command output ****/\n\n  function ResponseFrom(Text) {\n    let HeaderLength = Text.indexOf('\\n\\n\\n')\n    Text = Text.slice(HeaderLength + 1)\n\n    let TrailerIndex = Text.indexOf('<|endoftext|>')\n    if (TrailerIndex < 0) {\n      TrailerIndex = Text.indexOf('\\nllama_print_timings')\n    }\n    Text = Text.slice(0, TrailerIndex)\n\n    return Text\n  }\n\n  /**** now infer a response from the given prompt ****/\n\n  let { stdout, stderr, StatusCode, Signal } = child_process.spawnSync(\n    'bash', [], { input: Command }\n  )\n\n  const $stdout = stdout.toString().trim()\n  const $stderr = stderr.toString().trim()\n\n  switch (true) {\n    case (StatusCode == null):\n    case (StatusCode === 0):\n      msg.statusCode = ($stdout === '' ? 204 : 200)\n      msg.payload = ResponseFrom($stdout)\n      break\n    default:\n      msg.statusCode = 500 + StatusCode\n      msg.payload = ($stdout === '' ? '' : '>>>> stdout >>>>\\n' + $stdout + '\\n') +\n        '>>>> stderr >>>>\\n' + $stderr +\n        (Signal == null ? '' : '\\n' + Signal)\n      break\n  }\n\n  node.send([msg, null])\n  node.done()\n})()\n",
+        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null, msg])\n    node.done()\n    return\n  }\n\n  /**** retrieve settings or provide defaults ****/\n\n  let Seed = parseInt(msg.seed, 10)\n  if (isNaN(Seed)) { Seed = -1 }\n\n  let Threads = parseInt(msg.threads, 10)\n  if (isNaN(Threads)) { Threads = 4 }\n  Threads = Math.max(1, Threads)\n  Threads = Math.min(Threads, Math.max(1, os.cpus().length))\n\n  let ContextLength = parseInt(msg.context, 10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n  ContextLength = Math.max(0, Math.min(ContextLength, 4096))\n\n  let keep = parseInt(msg.keep, 10)\n  if (isNaN(keep)) { keep = 0 }\n  keep = Math.max(-1, Math.min(keep, ContextLength))\n\n  let PredictionLength = parseInt(msg.predict, 10)\n  if (isNaN(PredictionLength)) { PredictionLength = 128 }\n  PredictionLength = Math.max(1, Math.min(PredictionLength, ContextLength)) // no -1!\n\n  let topK = parseInt(msg.topk, 10)\n  if (isNaN(topK)) { topK = 40 }\n  topK = Math.max(1, Math.min(topK, 100))\n\n  let topP = parseFloat(msg.topp)\n  if (isNaN(topP)) { topP = 0.9 }\n  topP = Math.max(0.1, Math.min(topP, 1.0))\n\n  let Temperature = parseFloat(msg.temperature)\n  if (isNaN(Temperature)) { Temperature = 0.8 }\n  Temperature = Math.max(0.0, Math.min(Temperature, 1.0))\n\n  let Batches = parseInt(msg.batches, 10)\n  if (isNaN(Batches)) { Batches = 8 }\n  Batches = Math.max(1, Math.min(Batches, 100))\n\n  Prompt = Prompt.replace(/\"/g, '\\\\\"')\n\n  /**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = (global.get('UserDir') || '').trim()\n  if (UserDir === '') { UserDir = process.env.HOME + '/.node-red' }\n\n  if (!fs.statSync(UserDir, { throwIfNoEntry: false })?.isDirectory()) {\n    throw new Error(\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n  }\n\n  /**** combine all these settings into a command ****/\n\n  let Command = ('cd \"' + UserDir + '\" && ' +\n    './llama --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength + ' --keep ' + keep +\n    ' --n_predict ' + PredictionLength +\n    ' --threads ' + Threads + ' --batch_size ' + Batches +\n    ' --seed ' + Seed + ' --temp ' + Temperature +\n    ' --top_k ' + topK + ' --top_p ' + topP +\n    ' --reverse-prompt \"<|endoftext|>\"' +\n    ' --prompt \"' + Prompt + '\"'\n  )\n\n  /**** extract actual reponse from command output ****/\n\n  function ResponseFrom(Text) {\n    let HeaderLength = Text.indexOf('\\n\\n\\n')\n    Text = Text.slice(HeaderLength + 1)\n\n    let TrailerIndex = Text.indexOf('<|endoftext|>')\n    if (TrailerIndex < 0) {\n      TrailerIndex = Text.indexOf('\\nllama_print_timings')\n    }\n    Text = Text.slice(0, TrailerIndex)\n\n    return Text\n  }\n\n  /**** now infer a response from the given prompt ****/\n\n  let { stdout, stderr, StatusCode, Signal } = child_process.spawnSync(\n    'bash', [], { input: Command }\n  )\n\n  const $stdout = stdout.toString().trim()\n  const $stderr = stderr.toString().trim()\n\n  switch (true) {\n    case (StatusCode == null):\n    case (StatusCode === 0):\n      msg.statusCode = ($stdout === '' ? 204 : 200)\n      msg.payload = ResponseFrom($stdout)\n      break\n    default:\n      msg.statusCode = 500 + StatusCode\n      msg.payload = ($stdout === '' ? '' : '>>>> stdout >>>>\\n' + $stdout + '\\n') +\n        '>>>> stderr >>>>\\n' + $stderr +\n        (Signal == null ? '' : '\\n' + Signal)\n      break\n  }\n\n  node.send([msg, null])\n  node.done()\n})()\n",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
@@ -480,10 +488,14 @@
             {
                 "var": "fs",
                 "module": "fs"
+            },
+            {
+                "var": "process",
+                "module": "process"
             }
         ],
         "x": 300,
-        "y": 240,
+        "y": 220,
         "wires": [
             [
                 "10ee081f81a9a211",
@@ -499,7 +511,7 @@
         "type": "debug",
         "z": "706bdd3f3f20c07c",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -508,7 +520,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 160,
-        "y": 300,
+        "y": 280,
         "wires": []
     },
     {
@@ -519,7 +531,7 @@
         "statusCode": "",
         "headers": {},
         "x": 530,
-        "y": 180,
+        "y": 160,
         "wires": []
     },
     {
@@ -542,7 +554,7 @@
         "to": "",
         "reg": false,
         "x": 490,
-        "y": 280,
+        "y": 260,
         "wires": [
             [
                 "c09620ac6309e6db"
@@ -569,7 +581,7 @@
         "to": "",
         "reg": false,
         "x": 490,
-        "y": 240,
+        "y": 220,
         "wires": [
             [
                 "c09620ac6309e6db"
@@ -581,7 +593,7 @@
         "type": "debug",
         "z": "706bdd3f3f20c07c",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -590,7 +602,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 360,
-        "y": 320,
+        "y": 300,
         "wires": []
     },
     {
@@ -600,7 +612,7 @@
         "name": "cwd = UserDir",
         "info": "",
         "x": 510,
-        "y": 120,
+        "y": 100,
         "wires": []
     },
     {
@@ -693,7 +705,7 @@
         "to": "",
         "reg": false,
         "x": 130,
-        "y": 240,
+        "y": 220,
         "wires": [
             [
                 "f9aafb1df135391b",
@@ -723,7 +735,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 110,
-        "y": 60,
+        "y": 40,
         "wires": [
             [
                 "7431f09f4d61416e"
@@ -757,7 +769,7 @@
         "to": "",
         "reg": false,
         "x": 310,
-        "y": 60,
+        "y": 40,
         "wires": [
             [
                 "e734d784afdb8d8e"
@@ -778,7 +790,7 @@
         "statusVal": "payload",
         "statusType": "auto",
         "x": 490,
-        "y": 60,
+        "y": 40,
         "wires": []
     },
     {
@@ -788,7 +800,7 @@
         "name": "cwd = UserDir",
         "info": "",
         "x": 510,
-        "y": 380,
+        "y": 360,
         "wires": []
     },
     {
@@ -798,7 +810,7 @@
         "name": "cwd = UserDir",
         "info": "",
         "x": 510,
-        "y": 640,
+        "y": 620,
         "wires": []
     }
 ]
