@@ -32,6 +32,27 @@ If not already done, install Node-RED as described on their "[Get Started](https
 
 ### LLaMA.cpp ###
 
+[LLaMA.cpp](https://github.com/ggerganov/llama.cpp) is a port of Facebook's LLaMA model in C/C++ (don't let you fool by the statement that the "_main goal of llama.cpp is to run the LLaMA model using 4-bit integer quantization on a MacBook_" - LLaMA.cpp runs just as well under Windows and Linux)
+
+> Note: please use my own fork of the original LLaMA.cpp as the code in there raises the context limit and contains additional functions for tokenization - however, if you are fine with a context length of up to 4096 tokens and don't want to tokenize any prompts, the original code will work as fine
+
+Get the code as follows:
+
+```
+git https://github.com/rozek/llama.cpp
+cd llama.cpp
+```
+
+Then continue as desribed in the [LLaMA.cpp docs](https://github.com/rozek/llama.cpp#build)
+
+Afterwards, rename 
+
+* `main` to `llama`,
+* `tokenization` to `llama-tokens` and
+* `embedding` to `llama-embeddings`
+
+and copy them into the Node-RED "User Directory" (by default, this folder is located at `$HOME/.node-red`).
+
 ### StableLM-3B-4E1T Flows ###
 
 
