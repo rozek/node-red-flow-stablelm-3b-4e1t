@@ -45,7 +45,7 @@ cd llama.cpp
 
 Then continue as described in the [LLaMA.cpp docs](https://github.com/rozek/llama.cpp#build)
 
-Afterwards, rename 
+Afterwards, rename the executables
 
 * `main` to `llama`,
 * `tokenization` to `llama-tokens` and
@@ -55,6 +55,11 @@ and copy them into the Node-RED "User Directory" (by default, this folder is loc
 
 ### StableLM-3B-4E1T Flows ###
 
+If not already done, download the [8-bit quantization of the StableLM-3B-4E1T model](https://huggingface.co/rozek/StableLM-3B-4E1T_GGUF/blob/main/stablelm-3b-4e1t-Q8_K.bin) into the same folder that already contains your executables.
+
+> Nota bene: right now, the flows from this repository support the given model file only - if you prefer another one, you may simply change the model file name in the function nodes for text completion, tokenization and embeddings calculation.
+
+Now import the desired nodes and flows - if you want them all, just import file [StableLM-3B-4E1T-Flows.json](https://raw.githubusercontent.com/rozek/node-red-flow-stablelm-3b-4e1t/master/StableLM-3B-4E1T-Flows.json).
 
 
 ## License ##
