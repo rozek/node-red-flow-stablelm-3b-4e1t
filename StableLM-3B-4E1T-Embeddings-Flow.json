@@ -163,16 +163,6 @@
         "wires": []
     },
     {
-        "id": "ea3545c4d8f444c0",
-        "type": "comment",
-        "z": "706bdd3f3f20c07c",
-        "name": "cwd = server installation folder",
-        "info": "",
-        "x": 450,
-        "y": 640,
-        "wires": []
-    },
-    {
         "id": "a64ddff7702c3a1d",
         "type": "change",
         "z": "706bdd3f3f20c07c",
@@ -227,5 +217,15 @@
                 "e9926d8261e7b7a7"
             ]
         ]
+    },
+    {
+        "id": "687e12bfcb8df501",
+        "type": "comment",
+        "z": "706bdd3f3f20c07c",
+        "name": "cwd = UserDir",
+        "info": "",
+        "x": 510,
+        "y": 640,
+        "wires": []
     }
 ]
