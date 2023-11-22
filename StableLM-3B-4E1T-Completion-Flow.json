@@ -3,9 +3,9 @@
         "id": "763721aa65f0471b",
         "type": "comment",
         "z": "706bdd3f3f20c07c",
-        "name": "StableLM-3B-4E1T",
+        "name": "StableLM-3B-4E1T Completion",
         "info": "",
-        "x": 110,
+        "x": 150,
         "y": 100,
         "wires": []
     },
@@ -30,18 +30,14 @@
         "id": "f9aafb1df135391b",
         "type": "function",
         "z": "706bdd3f3f20c07c",
-        "name": "StableLM",
-        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null, msg])\n    node.done()\n    return\n  }\n\n  /**** retrieve settings or provide defaults ****/\n\n  let Seed = parseInt(msg.seed, 10)\n  if (isNaN(Seed)) { Seed = -1 }\n\n  let Threads = parseInt(msg.threads, 10)\n  if (isNaN(Threads)) { Threads = 4 }\n  Threads = Math.max(1, Threads)\n  Threads = Math.min(Threads, Math.max(1, os.cpus().length))\n\n  let ContextLength = parseInt(msg.context, 10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n  ContextLength = Math.max(0, Math.min(ContextLength, 4096))\n\n  let keep = parseInt(msg.keep, 10)\n  if (isNaN(keep)) { keep = 0 }\n  keep = Math.max(-1, Math.min(keep, ContextLength))\n\n  let PredictionLength = parseInt(msg.predict, 10)\n  if (isNaN(PredictionLength)) { PredictionLength = 128 }\n  PredictionLength = Math.max(1, Math.min(PredictionLength, ContextLength)) // no -1!\n\n  let topK = parseInt(msg.topk, 10)\n  if (isNaN(topK)) { topK = 40 }\n  topK = Math.max(1, Math.min(topK, 100))\n\n  let topP = parseFloat(msg.topp)\n  if (isNaN(topP)) { topP = 0.9 }\n  topP = Math.max(0.1, Math.min(topP, 1.0))\n\n  let Temperature = parseFloat(msg.temperature)\n  if (isNaN(Temperature)) { Temperature = 0.8 }\n  Temperature = Math.max(0.0, Math.min(Temperature, 1.0))\n\n  let Batches = parseInt(msg.batches, 10)\n  if (isNaN(Batches)) { Batches = 8 }\n  Batches = Math.max(1, Math.min(Batches, 100))\n\n  Prompt = Prompt.replace(/\"/g, '\\\\\"')\n\n  /**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = (global.get('UserDir') || '').trim()\n  if (UserDir === '') { UserDir = process.env.HOME + '/.node-red' }\n\n  if (!fs.statSync(UserDir, { throwIfNoEntry: false })?.isDirectory()) {\n    throw new Error(\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n  }\n\n  /**** combine all these settings into a command ****/\n\n  let Command = ('cd \"' + UserDir + '\" && ' +\n    './llama --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength + ' --keep ' + keep +\n    ' --n_predict ' + PredictionLength +\n    ' --threads ' + Threads + ' --batch_size ' + Batches +\n    ' --seed ' + Seed + ' --temp ' + Temperature +\n    ' --top_k ' + topK + ' --top_p ' + topP +\n    ' --reverse-prompt \"<|endoftext|>\"' +\n    ' --prompt \"' + Prompt + '\"'\n  )\n\n  /**** extract actual reponse from command output ****/\n\n  function ResponseFrom(Text) {\n    let HeaderLength = Text.indexOf('\\n\\n\\n')\n    Text = Text.slice(HeaderLength + 1)\n\n    let TrailerIndex = Text.indexOf('<|endoftext|>')\n    if (TrailerIndex < 0) {\n      TrailerIndex = Text.indexOf('\\nllama_print_timings')\n    }\n    Text = Text.slice(0, TrailerIndex)\n\n    return Text\n  }\n\n  /**** now infer a response from the given prompt ****/\n\n  let { stdout, stderr, StatusCode, Signal } = child_process.spawnSync(\n    'bash', [], { input: Command }\n  )\n\n  const $stdout = stdout.toString().trim()\n  const $stderr = stderr.toString().trim()\n\n  switch (true) {\n    case (StatusCode == null):\n    case (StatusCode === 0):\n      msg.statusCode = ($stdout === '' ? 204 : 200)\n      msg.payload = ResponseFrom($stdout)\n      break\n    default:\n      msg.statusCode = 500 + StatusCode\n      msg.payload = ($stdout === '' ? '' : '>>>> stdout >>>>\\n' + $stdout + '\\n') +\n        '>>>> stderr >>>>\\n' + $stderr +\n        (Signal == null ? '' : '\\n' + Signal)\n      break\n  }\n\n  node.send([msg, null])\n  node.done()\n})()\n",
+        "name": "StableLM Completion",
+        "func": "(async () => {\n  let Prompt = (msg.payload || '').trim()\n  if (Prompt === '') {\n    msg.payload = 'empty or missing prompt'\n    node.send([null, msg])\n    node.done()\n    return\n  }\n\n  /**** retrieve settings or provide defaults ****/\n\n  let Seed = parseInt(msg.seed, 10)\n  if (isNaN(Seed)) { Seed = -1 }\n\n  let Threads = parseInt(msg.threads, 10)\n  if (isNaN(Threads)) { Threads = 4 }\n  Threads = Math.max(1, Threads)\n  Threads = Math.min(Threads, Math.max(1, os.cpus().length))\n\n  let ContextLength = parseInt(msg.context, 10)\n  if (isNaN(ContextLength)) { ContextLength = 512 }\n  ContextLength = Math.max(0, Math.min(ContextLength, 4096))\n\n  let keep = parseInt(msg.keep, 10)\n  if (isNaN(keep)) { keep = 0 }\n  keep = Math.max(-1, Math.min(keep, ContextLength))\n\n  let PredictionLength = parseInt(msg.predict, 10)\n  if (isNaN(PredictionLength)) { PredictionLength = 128 }\n  PredictionLength = Math.max(1, Math.min(PredictionLength, ContextLength)) // no -1!\n\n  let topK = parseInt(msg.topk, 10)\n  if (isNaN(topK)) { topK = 40 }\n  topK = Math.max(1, Math.min(topK, 100))\n\n  let topP = parseFloat(msg.topp)\n  if (isNaN(topP)) { topP = 0.9 }\n  topP = Math.max(0.1, Math.min(topP, 1.0))\n\n  let Temperature = parseFloat(msg.temperature)\n  if (isNaN(Temperature)) { Temperature = 0.8 }\n  Temperature = Math.max(0.0, Math.min(Temperature, 1.0))\n\n  let Batches = parseInt(msg.batches, 10)\n  if (isNaN(Batches)) { Batches = 8 }\n  Batches = Math.max(1, Math.min(Batches, 100))\n\n  let Grammar = (msg.grammar || '').trim()\n\n  Prompt = Prompt.replace(/\"/g, '\\\\\"')\n\n  /**** retrieve UserDir - crash if not a folder ****/\n\n  let UserDir = (global.get('UserDir') || '').trim()\n  if (UserDir === '') { UserDir = process.env.HOME + '/.node-red' }\n\n  if (!fs.statSync(UserDir, { throwIfNoEntry: false })?.isDirectory()) {\n    throw new Error(\n      'the given \"UserDir\" (\"' + UserDir + '\") is either missing or ' +\n      'not a folder - exiting'\n    )\n  }\n\n  /**** combine all these settings into a command ****/\n\n  const Command = (\n    './llama --model ./stablelm-3b-4e1t-Q8_0.bin --mlock ' +\n    ' --ctx_size ' + ContextLength + ' --keep ' + keep +\n    ' --n_predict ' + PredictionLength +\n    ' --threads ' + Threads + ' --batch_size ' + Batches +\n    ' --seed ' + Seed + ' --temp ' + Temperature +\n    ' --top_k ' + topK + ' --top_p ' + topP +\n    ' --reverse-prompt \"<|endoftext|>\"' +\n    (Grammar === '' ? '' : '--grammar \"' + Grammar + '\"') +\n    ' --prompt \"' + Prompt + '\"'\n  )\n  const Options = {\n    cwd: UserDir\n  }\n\n  /**** extract actual reponse from command output ****/\n\n  function ResponseFrom(Text) {\n    let HeaderLength = Text.indexOf('\\n\\n\\n')\n    Text = Text.slice(HeaderLength + 1)\n\n    let TrailerIndex = Text.indexOf('<|endoftext|>')\n    if (TrailerIndex < 0) {\n      TrailerIndex = Text.indexOf('\\nllama_print_timings')\n    }\n    Text = Text.slice(0, TrailerIndex)\n\n    return Text\n  }\n\n  /**** now infer a response from the given prompt ****/\n\n  node.status({ fill: 'yellow', shape: 'ring', text: 'running' })\n\n  const ShellProcess = child_process.exec(Command, Options)\n  let stdout = ''\n  for await (const Chunk of ShellProcess.stdout) {\n    stdout += Chunk\n  }\n\n  let stderr = ''\n  for await (const Chunk of ShellProcess.stderr) {\n    stderr += Chunk\n  }\n\n  const ExitCode = (await new Promise((resolve) => {\n    ShellProcess.on('close', resolve)\n  })) || 0\n  if (ExitCode !== 0) {\n    node.status({ fill: 'red', shape: 'dot', text: 'ExitCode = ' + ExitCode })\n\n    msg.statusCode = 500 + ExitCode\n    msg.payload = stderr\n  } else {\n    node.status({ fill: 'green', shape: 'dot', text: 'finished' })\n\n    stdout = stdout.trim()\n\n    msg.statusCode = (stdout === '' ? 204 : 200)\n    msg.payload = ResponseFrom(stdout)\n  }\n\n  node.send([msg, null])\n  node.done()\n})()\n",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [
-            {
-                "var": "os",
-                "module": "os"
-            },
             {
                 "var": "child_process",
                 "module": "child_process"
@@ -53,9 +49,17 @@
             {
                 "var": "process",
                 "module": "process"
+            },
+            {
+                "var": "path",
+                "module": "path"
+            },
+            {
+                "var": "os",
+                "module": "os"
             }
         ],
-        "x": 300,
+        "x": 340,
         "y": 220,
         "wires": [
             [
@@ -65,6 +69,10 @@
             [
                 "b566f55c47395bd8"
             ]
+        ],
+        "outputLabels": [
+            "on success",
+            "on failure"
         ]
     },
     {
@@ -114,7 +122,7 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 490,
+        "x": 530,
         "y": 260,
         "wires": [
             [
@@ -141,7 +149,7 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 490,
+        "x": 530,
         "y": 220,
         "wires": [
             [
@@ -273,5 +281,85 @@
                 "d17c613210997c7a"
             ]
         ]
+    },
+    {
+        "id": "aed2be241ae8bba5",
+        "type": "inject",
+        "z": "706bdd3f3f20c07c",
+        "name": "on StartUp",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 40,
+        "wires": [
+            [
+                "7431f09f4d61416e"
+            ]
+        ]
+    },
+    {
+        "id": "7431f09f4d61416e",
+        "type": "change",
+        "z": "706bdd3f3f20c07c",
+        "name": "configure Settings",
+        "rules": [
+            {
+                "t": "set",
+                "p": "UserDir",
+                "pt": "global",
+                "to": "",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "configured",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 310,
+        "y": 40,
+        "wires": [
+            [
+                "e734d784afdb8d8e"
+            ]
+        ]
+    },
+    {
+        "id": "e734d784afdb8d8e",
+        "type": "debug",
+        "z": "706bdd3f3f20c07c",
+        "name": "Status",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 490,
+        "y": 40,
+        "wires": []
     }
 ]
