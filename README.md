@@ -89,6 +89,7 @@ Text completion supports the following properties:
 * `topp` - top-p sampling limit (0.0...1.0, default: 0.9)
 * `temperature` - temperature (0.0...2.0, default: 0.8)
 * `batches` - batch size for prompt processing (integer ≧ 1, default: 8)
+* `grammar` - [GBNF grammar](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md) to restrict text completion output
 
 ### Tokenization Node ###
 
@@ -129,6 +130,7 @@ For inferencing, the following parameters are supported (most of them will be co
 * `topp` - will be copied into `msg.topp`
 * `temperature` - will be copied into `msg.temperature`
 * `batches` - will be copied into `msg.batches`
+* `grammar` - will be copied into `msg.grammar`
 
 Tokenization and embeddings calculation endpoints support a subset of these parameters - as required by their respective function nodes.
 
